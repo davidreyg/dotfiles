@@ -20,11 +20,18 @@
     executable = true
     path = "rbw"
 
-# [".local/bin/cue"]
-#     type = "archive-file"
-#     url = {{ gitHubLatestReleaseAssetURL "cue-lang/cue" (printf "cue_v*_%s_%s.tar.gz" .chezmoi.os .chezmoi.arch) | quote }}
-#     executable = true
-#     path = "cue"
+# Agente en segundo plano
+[".local/bin/rbw-agent"]
+    type = "archive-file"
+    url = {{ gitHubLatestReleaseAssetURL "doy/rbw" (printf "rbw_*_%s_%s.tar.gz" .chezmoi.os .chezmoi.arch) | quote }}
+    executable = true
+    path = "rbw-agent"
+
+# (Opcional) Autocompletado para Zsh
+[".local/share/zsh/site-functions/_rbw"]
+    type = "archive-file"
+    url = {{ gitHubLatestReleaseAssetURL "doy/rbw" (printf "rbw_*_%s_%s.tar.gz" .chezmoi.os .chezmoi.arch) | quote }}
+    path = "completion/zsh"
 
 [".local/bin/eza"]
     type = "archive-file"
