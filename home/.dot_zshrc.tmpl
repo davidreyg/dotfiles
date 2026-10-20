@@ -1,0 +1,35 @@
+# Keep Zsh startup non-destructive: application-specific settings live in conf.d.
+
+HISTFILE="${ZDOTDIR:-$HOME}/.zsh_history"
+HISTSIZE=5000
+SAVEHIST=5000
+setopt append_history
+setopt share_history
+setopt hist_ignore_space
+setopt hist_ignore_all_dups
+setopt hist_save_no_dups
+setopt hist_ignore_dups
+setopt hist_find_no_dups
+setopt HIST_REDUCE_BLANKS
+
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}' 'l:|=* r:|=*' 'r:|=* l:|=*'
+
+# set PATH so it includes user's private bin if it exists
+if [ -d "$HOME/bin" ] ; then
+    PATH="$HOME/bin:$PATH"
+fi
+
+# set PATH so it includes user's private bin if it exists
+if [ -d "$HOME/.local/bin" ] ; then
+    PATH="$HOME/.local/bin:$PATH"
+fi
+
+mise_completion_dir="${XDG_DATA_HOME:-$HOME/.local/share}/zsh/site-functions"
+if [ -d "$mise_completion_dir" ]; then
+    fpath=("$mise_completion_dir" $fpath)
+fi
+
+# Set the SSH agent socket path RBW
+if [[ -n ${XDG_RUNTIME_DIR:-} ]]; then
+    export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/rbw/ssh-agent-socket"
+fi
