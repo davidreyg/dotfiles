@@ -1,50 +1,68 @@
-{{ if eq .osid "linux-debian" "linux-raspbian" "linux-ubuntu" -}}
+{{/* boolean feature tags */}}
+{{- $ephemeral := false -}}{{/* true if this machine is ephemeral, e.g. a cloud or VM instance */}}
+{{- $work := false -}}{{/* true if this machine is a work machine */}}
+{{- $headless := false -}}{{/* true if this machine does not have a screen and keyboard */}}
+{{- $personal := false -}}{{/* true if this machine should have personal secrets */}}
+{{- "" -}}
 
-{{ $packages := list
-     "bat"
-     "build-essential"
-     "curl"
-     "fd-find"
-     "fzf"
-     "git"
-     "git-lfs"
-     "libfuse2"
-     "openssh-server"
-     "ripgrep"
-     "shellcheck"
-     "units"
-     "zsh" -}}
-{{ $snaps := list -}}
-{{ $classicSnaps := list -}}
+{{- $osID := .chezmoi.os -}}
+{{- if (and (eq .chezmoi.os "linux") (hasKey .chezmoi.osRelease "id")) -}}
+{{-   $osID = printf "%s-%s" .chezmoi.os .chezmoi.osRelease.id -}}
+{{- end -}}
 
-{{ if eq .osid "linux-ubuntu" -}}
-{{   $packages = mustAppend $packages "btop" -}}
-{{ end -}}
+{{/* detect GitHub codespaces, VSCode remote containers, Docker containers, Multipass VMs, and Vagrant boxes */}}
+{{- if or (env "CODESPACES") (env "REMOTE_CONTAINERS_IPC") (eq .chezmoi.username "root" "ubuntu" "vagrant" "vscode") -}}
+{{-   $ephemeral = true -}}
+{{-   $headless = true -}}
+{{- end -}}
 
-{{ if not .headless -}}
-{{   $packages = mustAppend $packages "xclip" -}}
-{{ end -}}
+{{/* work around unreliable hostname on darwin */}}
+{{- $hostname := .chezmoi.hostname -}}
+{{- if eq .chezmoi.os "darwin" -}}
+{{-   $hostname := output "scutil" "--get" "LocalHostName" | trim -}}
+{{- end -}}
 
+{{- if eq .chezmoi.os "windows" -}}
+{{-   $ephemeral = true -}}
+{{- end -}}
 
-{{ $sudo := "sudo " -}}
-{{ if eq .chezmoi.username "root" -}}
-{{   $sudo = "" -}}
-{{ end -}}
+{{- if not $ephemeral -}}
+{{-   if eq $hostname "macbook-air-m3" -}}
+{{-     $personal = true -}}
+{{-   else if eq $hostname "daregu-pc" -}}
+{{-     $personal = true -}}
+{{-   else if eq $hostname "ubuntu" "ubuntu-26" -}}
+{{-     $headless = true -}}
+{{-     $personal = true -}}
+{{-   else if eq $hostname "zrh-mpl3s" -}}
+{{-     $work = true -}}
+{{-   else if stdinIsATTY -}}
+{{-     $headless = promptBoolOnce . "headless" "headless" -}}
+{{-     $ephemeral = promptBoolOnce . "ephemeral" "ephemeral" -}}
+{{-   else -}}
+{{-     $ephemeral = true -}}
+{{-     $headless = true -}}
+{{-   end -}}
+{{- end -}}
 
-#!/bin/bash
+{{- $email := "twpayne@gmail.com" -}}
+{{- if $work -}}
+{{-   $email = "tpayne@akamai.com" -}}
+{{- end -}}
 
-set -eufo pipefail
+[data]
+    ephemeral = {{ $ephemeral }}
+    email = {{ $email | quote }}
+    work = {{ $work }}
+    headless = {{ $headless }}
+    hostname = {{ $hostname | quote }}
+    personal = {{ $personal }}
+    osid = {{ $osID | quote }}
+    zshPlugins = [
+        "per-directory-history",
+        "vi-mode",
+        "zsh-syntax-highlighting",
+    ]
 
-{{ $sudo }}apt-get update
-{{ $sudo }}apt-get install -y {{ $packages | join " " }}
-
-{{ if lookPath "snap" }}
-{{   range $snaps }}
-( snap info {{ . }} | grep -q ^installed: ) || {{ $sudo }}snap install {{ . }}
-{{   end }}
-{{   range $classicSnaps }}
-( snap info {{ . }} | grep -q ^installed: ) || {{ $sudo }}snap install --classic {{ . }}
-{{   end }}
-{{ end }}
-
-{{ end -}}
+[github]
+    refreshPeriod = "12h"
