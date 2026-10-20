@@ -14,11 +14,11 @@
     executable = true
     path = "age/age-keygen"
 
-# [".local/bin/croc"]
-#     type = "archive-file"
-#     url = {{ gitHubLatestReleaseAssetURL "schollz/croc" "croc_v*_Linux-64bit.tar.gz" | quote }}
-#     executable = true
-#     path = "croc"
+[".local/bin/rbw"]
+    type = "archive-file"
+    url = {{ gitHubLatestReleaseAssetURL "doy/rbw" (printf "rbw_*_%s_%s.tar.gz" .chezmoi.os .chezmoi.arch) | quote }}
+    executable = true
+    path = "rbw"
 
 # [".local/bin/cue"]
 #     type = "archive-file"
