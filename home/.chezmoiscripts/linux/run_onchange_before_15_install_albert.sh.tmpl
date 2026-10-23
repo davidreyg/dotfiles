@@ -1,0 +1,40 @@
+#!/bin/bash
+
+{{ if eq .chezmoi.os "linux" }}
+
+if command -v albert >/dev/null 2>&1; then
+    exit 0
+fi
+
+{{ if hasKey .chezmoi.osRelease "ubuntuCodename" }}
+
+    {{ if eq .chezmoi.osRelease.ubuntuCodename "noble" }}
+        REPO="xUbuntu_24.04"
+    {{ else if eq .chezmoi.osRelease.ubuntuCodename "jammy" }}
+        REPO="xUbuntu_22.04"
+    {{ else if eq .chezmoi.osRelease.ubuntuCodename "focal" }}
+        REPO="xUbuntu_20.04"
+    {{ else }}
+        REPO="xUbuntu_{{ .chezmoi.osRelease.versionID }}"
+    {{ end }}
+
+    curl -fsSL "https://download.opensuse.org/repositories/home:manuelschneid3r/${REPO}/Release.key" | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/home_manuelschneid3r.gpg > /dev/null
+    echo "deb http://download.opensuse.org/repositories/home:/manuelschneid3r/${REPO}/ /" | sudo tee /etc/apt/sources.list.d/home:manuelschneid3r.list
+    sudo apt-get update && sudo apt-get install -y albert
+
+{{ else if or (eq .chezmoi.osRelease.id "rocky") (eq .chezmoi.osRelease.id "almalinux") (eq .chezmoi.osRelease.id "centos") }}
+
+    sudo dnf config-manager --add-repo https://download.opensuse.org/repositories/home:manuelschneid3r/CentOS_9_Stream/home:manuelschneid3r.repo
+    sudo dnf install -y epel-release
+    sudo dnf install -y albert
+
+{{ else if eq .chezmoi.osRelease.id "debian" }}
+
+    REPO="Debian_{{ .chezmoi.osRelease.versionID }}"
+    curl -fsSL "https://download.opensuse.org/repositories/home:manuelschneid3r/${REPO}/Release.key" | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/home_manuelschneid3r.gpg > /dev/null
+    echo "deb http://download.opensuse.org/repositories/home:/manuelschneid3r/${REPO}/ /" | sudo tee /etc/apt/sources.list.d/home:manuelschneid3r.list
+    sudo apt-get update && sudo apt-get install -y albert
+
+{{ end }}
+
+{{ end }}
