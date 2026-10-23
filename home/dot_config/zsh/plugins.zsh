@@ -2,8 +2,9 @@
 ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
 source "${ZINIT_HOME}/zinit.zsh"
 
+ZINIT[COMPINIT_OPTS]=-u
+
 zinit wait lucid for \
- atinit"ZINIT[COMPINIT_OPTS]=-C; zicompinit; zicdreplay" \
     zdharma-continuum/fast-syntax-highlighting \
  blockf \
     zsh-users/zsh-completions \
@@ -47,3 +48,8 @@ zinit ice has"starship" id-as"starship-init" nocompile \
     atclone"starship init zsh > init.zsh; starship completions zsh > _starship" \
     atpull"%atclone" src"init.zsh"
 zinit light zdharma-continuum/null
+
+# El compinit global (/etc/zsh/zshrc) corre antes de este archivo y no ve los
+# completados que zinit instala después, así que se reinicia al final.
+zicompinit
+zicdreplay
