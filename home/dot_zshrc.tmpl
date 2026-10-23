@@ -24,6 +24,11 @@ if [ -d "$HOME/.local/bin" ] ; then
     PATH="$HOME/.local/bin:$PATH"
 fi
 
+# opencode
+if [ -d "$HOME/.opencode/bin" ] ; then
+    PATH="$HOME/.opencode/bin:$PATH"
+fi
+
 mise_completion_dir="${XDG_DATA_HOME:-$HOME/.local/share}/zsh/site-functions"
 if [ -d "$mise_completion_dir" ]; then
     fpath=("$mise_completion_dir" $fpath)
