@@ -38,3 +38,9 @@ zinit snippet https://raw.githubusercontent.com/eza-community/eza/main/completio
 zinit ice as"completion" has"chezmoi" id-as"chezmoi" lucid wait"0" nocompile \
     atclone"chezmoi completion zsh > _chezmoi" atpull"%atclone"
 zinit light zdharma-continuum/null
+
+# Inicialización de Starship
+zinit ice has"starship" id-as"starship-init" nocompile \
+    atclone"starship init zsh > init.zsh; starship completions zsh > _starship" \
+    atpull"%atclone" src"init.zsh"
+zinit light zdharma-continuum/null
