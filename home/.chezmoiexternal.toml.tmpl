@@ -1,6 +1,6 @@
 {{ if not .ephemeral }}
 
-{{- if or (eq .osid "linux-ubuntu") (eq .osid "linux-linuxmint") }}
+{{- if eq (includeTemplate ".chezmoitemplates/ubuntu-like.tmpl" .) "true" }}
 
 [".local/bin/age"]
     type = "archive-file"

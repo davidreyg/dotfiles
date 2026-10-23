@@ -1,4 +1,4 @@
-{{ if eq .osid "linux-debian" "linux-raspbian" "linux-ubuntu" "linux-linuxmint" -}}
+{{ if or (eq .osid "linux-debian") (eq .osid "linux-raspbian") (eq (includeTemplate ".chezmoitemplates/ubuntu-like.tmpl" .) "true") -}}
 
 {{ $packages := list
      "bat"
@@ -17,7 +17,7 @@
 {{ $snaps := list -}}
 {{ $classicSnaps := list -}}
 
-{{ if eq .osid "linux-ubuntu" "linux-linuxmint" -}}
+{{ if eq (includeTemplate ".chezmoitemplates/ubuntu-like.tmpl" .) "true" -}}
 {{   $packages = mustAppend $packages "btop" -}}
 {{ end -}}
 
