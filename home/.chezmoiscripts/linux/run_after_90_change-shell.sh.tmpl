@@ -1,0 +1,29 @@
+{{- if not .ephemeral -}}
+#!/bin/bash
+
+set -eufo pipefail
+
+target="/usr/bin/zsh"
+user="$(id -un)"
+
+if ! command -v zsh >/dev/null 2>&1; then
+    echo "zsh no está instalado; se omite el cambio de shell" >&2
+    exit 0
+fi
+
+if ! grep -qx "$target" /etc/shells; then
+    echo "$target no está registrado en /etc/shells; se omite el cambio de shell" >&2
+    exit 0
+fi
+
+if [ "$(getent passwd "$user" | cut -d: -f7)" = "$target" ]; then
+    exit 0
+fi
+
+if [ ! -t 0 ]; then
+    echo "Sin TTY: ejecuta manualmente 'chsh -s $target'" >&2
+    exit 0
+fi
+
+chsh -s "$target"
+{{ end -}}

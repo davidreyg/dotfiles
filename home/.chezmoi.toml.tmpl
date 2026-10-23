@@ -5,21 +5,30 @@
 {{- $personal := false -}}{{/* true if this machine should have personal secrets */}}
 {{- "" -}}
 
+{{/* operating system identity */}}
 {{- $osID := .chezmoi.os -}}
 {{- if (and (eq .chezmoi.os "linux") (hasKey .chezmoi.osRelease "id")) -}}
 {{-   $osID = printf "%s-%s" .chezmoi.os .chezmoi.osRelease.id -}}
 {{- end -}}
 
-{{/* detect GitHub codespaces, VSCode remote containers, Docker containers, Multipass VMs, and Vagrant boxes */}}
-{{- if or (env "CODESPACES") (env "REMOTE_CONTAINERS_IPC") (eq .chezmoi.username "root" "ubuntu" "vagrant" "vscode") -}}
+{{/* detect GitHub codespaces, VSCode remote containers, CI runs, and disposable accounts */}}
+{{- if or (env "CODESPACES") (env "REMOTE_CONTAINERS_IPC") (env "CI") (eq .chezmoi.username "root" "ubuntu" "vagrant" "vscode") -}}
 {{-   $ephemeral = true -}}
 {{-   $headless = true -}}
+{{- end -}}
+
+{{/* detect Docker/Podman containers, whose state is disposable too */}}
+{{- if and (not $ephemeral) (eq .chezmoi.os "linux") -}}
+{{-   if eq (output "sh" "-c" "if [ -e /.dockerenv ] || [ -e /run/.containerenv ]; then echo yes; else echo no; fi") "yes" -}}
+{{-     $ephemeral = true -}}
+{{-     $headless = true -}}
+{{-   end -}}
 {{- end -}}
 
 {{/* work around unreliable hostname on darwin */}}
 {{- $hostname := .chezmoi.hostname -}}
 {{- if eq .chezmoi.os "darwin" -}}
-{{-   $hostname := output "scutil" "--get" "LocalHostName" | trim -}}
+{{-   $hostname = output "scutil" "--get" "LocalHostName" | trim -}}
 {{- end -}}
 
 {{- if eq .chezmoi.os "windows" -}}
@@ -40,8 +49,8 @@
 {{-     $headless = promptBoolOnce . "headless" "headless" -}}
 {{-     $ephemeral = promptBoolOnce . "ephemeral" "ephemeral" -}}
 {{-   else -}}
-{{-     $ephemeral = true -}}
-{{-     $headless = true -}}
+{{/* Unknown host without a TTY: assume a real workstation, not a disposable one. */}}
+{{-     $personal = true -}}
 {{-   end -}}
 {{- end -}}
 
@@ -61,3 +70,9 @@
 
 [github]
     refreshPeriod = "12h"
+
+[status]
+    exclude = ["scripts"]
+
+[diff]
+    exclude = ["scripts"]
