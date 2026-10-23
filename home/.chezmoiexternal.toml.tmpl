@@ -51,12 +51,17 @@
 #     stripComponents = 1
 #     path = "bin/gh"
 
-# [".local/bin/glow"]
-#     type = "archive-file"
-#     url = {{ gitHubLatestReleaseAssetURL "charmbracelet/glow" "glow_*_Linux_x86_64.tar.gz" | quote }}
-#     executable = true
-#     stripComponents = 1
-#     path = "glow"
+{{- $miseVersion := (gitHubLatestRelease "jdx/mise").TagName }}
+{{- $os := .chezmoi.os }}
+{{- $arch := .chezmoi.arch }}
+{{- if eq $arch "amd64" }}{{ $arch = "x64" }}{{ end }}
+
+[".local/bin/mise"]
+    type = "archive-file"
+    url = "https://github.com/jdx/mise/releases/download/{{ $miseVersion }}/mise-{{ $miseVersion }}-{{ $os }}-{{ $arch }}.tar.gz"
+    executable = true
+    path = "mise/bin/mise"
+    refreshPeriod = "168h" # Revisa actualizaciones cada semana al ejecutar `chezmoi apply`
 
 # [".local/bin/golangci-lint"]
 #     type = "archive-file"

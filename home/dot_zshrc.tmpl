@@ -29,9 +29,12 @@ if [ -d "$HOME/.opencode/bin" ] ; then
     PATH="$HOME/.opencode/bin:$PATH"
 fi
 
-mise_completion_dir="${XDG_DATA_HOME:-$HOME/.local/share}/zsh/site-functions"
-if [ -d "$mise_completion_dir" ]; then
-    fpath=("$mise_completion_dir" $fpath)
+# Añadir la carpeta donde mise pone los autocompletados de zsh al fpath
+fpath=($HOME/.local/share/zsh/site-functions $fpath)
+
+# Iniciar mise y activarlo para la sesión actual
+if [ -f "$HOME/.local/bin/mise" ]; then
+    eval "$($HOME/.local/bin/mise activate zsh)"
 fi
 
 # Set the SSH agent socket path RBW
