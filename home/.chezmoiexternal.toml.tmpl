@@ -39,11 +39,10 @@
     executable = true
     path = "./eza"
 
-# [".local/bin/gdu"]
-#     type = "archive-file"
-#     url = {{ gitHubLatestReleaseAssetURL "dundee/gdu" (printf "gdu_%s_%s.tgz" .chezmoi.os .chezmoi.arch) | quote }}
-#     executable = true
-#     path = "gdu_linux_amd64"
+[".local/share/zinit/zinit.git"]
+    type = "git-repo"
+    url = "https://github.com/zdharma-continuum/zinit.git"
+    refreshPeriod = "168h"
 
 # [".local/bin/gh"]
 #     type = "archive-file"

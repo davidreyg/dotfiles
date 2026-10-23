@@ -33,3 +33,9 @@ fi
 if [[ -n ${XDG_RUNTIME_DIR:-} ]]; then
     export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/rbw/ssh-agent-socket"
 fi
+
+# Cargar plugins
+[[ -f "${HOME}/.config/zsh/plugins.zsh" ]] && source "${HOME}/.config/zsh/plugins.zsh"
+
+autoload -Uz _zinit
+(( ${+_comps} )) && _comps[zinit]=_zinit
