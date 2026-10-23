@@ -13,6 +13,9 @@ zinit wait lucid for \
 zinit light Aloxaf/fzf-tab
 zinit light MichaelAquilina/zsh-you-should-use
 
+zstyle ':zsh-eza:config' autocd yes
+zi ice has'eza'
+zi light z-shell/zsh-eza
 
 # Librerías y plugins de Oh My Zsh (OMZ)
 zinit snippet OMZL::git.zsh
@@ -35,7 +38,7 @@ zinit ice as"completion" lucid wait"0"
 zinit snippet https://raw.githubusercontent.com/eza-community/eza/main/completions/zsh/_eza
 
 # Autocompletado nativo para Chezmoi
-zinit ice as"completion" has"chezmoi" id-as"chezmoi" lucid wait"0" nocompile \
+zinit ice as"completion" has"chezmoi" id-as"chezmoi" nocompile \
     atclone"chezmoi completion zsh > _chezmoi" atpull"%atclone"
 zinit light zdharma-continuum/null
 
