@@ -36,9 +36,11 @@ GitHub mediante [rbw](https://github.com/doy/rbw) (cliente no oficial de Bitward
 | --- | --- |
 | **Zsh** | Historial compartido entre sesiones, completado insensible a mayúsculas, `PATH` para `~/bin`, `~/.local/bin` y `~/.opencode/bin`. |
 | **Zinit** | Gestor de plugins: `fast-syntax-highlighting`, `zsh-autosuggestions`, `fzf-tab`, `zsh-you-should-use`, `zsh-eza` y snippets de Oh My Zsh (git, docker, man pages). |
+| **mise** | Gestor de versiones de runtimes, instalado en `~/.local/bin`, activado en `~/.zshrc` y con autocompletado de Zsh. |
 | **Starship** | Prompt instalado en `~/.local/bin` y cargado de forma diferida por Zinit. |
 | **rbw** | Cliente de Bitwarden + `rbw-agent` como agente SSH (`$XDG_RUNTIME_DIR/rbw/ssh-agent-socket`). |
 | **eza / bat / ripgrep / fd / fzf / btop** | Utilidades de línea de comandos instaladas por el script de paquetes. |
+| **Albert** | Lanzador instalado desde el repositorio oficial de openSUSE Build Service (solo Linux con entorno gráfico). |
 | **Fuentes** | MesloLGS NF (solo en máquinas con pantalla) para glifos de Nerd Font. |
 | **Git** | `user.name`, `user.email` y `init.defaultBranch = main`. |
 
@@ -99,11 +101,12 @@ chezmoi init --apply davidreyg/dotfiles
 Este comando clona el repositorio en `~/.local/share/chezmoi` y aplica todo. Durante la primera
 ejecución:
 
-1. Pide la contraseña de `sudo` para instalar paquetes con `apt`.
-2. Descarga `age`, `age-keygen`, `rbw`, `rbw-agent`, `eza` y el repositorio de Zinit.
-3. Instala Starship en `~/.local/bin`.
-4. Descarga las fuentes MesloLGS NF (si la máquina tiene pantalla).
-5. Pregunta si quieres cambiar el shell por defecto a `/usr/bin/zsh`.
+1. Pregunta el tipo de máquina (`personal`/`work`). El modo headless se detecta automáticamente.
+2. Pide la contraseña de `sudo` para instalar paquetes con `apt`.
+3. Descarga `age`, `age-keygen`, `rbw`, `rbw-agent`, `eza` y el repositorio de Zinit.
+4. Instala Starship en `~/.local/bin`.
+5. Descarga las fuentes MesloLGS NF (si la máquina tiene pantalla).
+6. Pregunta si quieres cambiar el shell por defecto a `/usr/bin/zsh`.
 
 Si prefieres revisar antes de aplicar:
 
@@ -233,11 +236,11 @@ Regla de oro: **no edites a mano archivos gestionados** (`~/.zshrc`, `~/.gitconf
 └── home/
     ├── .chezmoi.toml.tmpl            # configuración y [data] calculada
     ├── .chezmoiexternal.toml.tmpl    # binarios y fuentes descargados
-    ├── .chezmoitemplates/
-    │   └── ubuntu-like.tmpl          # detección de la familia Ubuntu
     ├── .chezmoiscripts/linux/
     │   ├── run_onchange_before_10_install-packages.sh.tmpl
+    │   ├── run_onchange_before_15_install_albert.sh.tmpl
     │   ├── run_after_20_install_starship.sh
+    │   ├── run_after_30_setup_mise.sh
     │   └── run_after_90_change-shell.sh.tmpl
     ├── dot_zshrc.tmpl                # -> ~/.zshrc
     ├── dot_gitconfig.tmpl            # -> ~/.gitconfig
@@ -260,28 +263,53 @@ Convenciones de chezmoi:
 
 | Variable | Significado |
 | --- | --- |
-| `headless` | Sin pantalla ni teclado: omite `xclip` y las fuentes. |
+| `machine_type` | Respuesta del prompt: `personal`, `work` o `ephemeral`. |
+| `is_headless` | Detectado automáticamente. Sin GUI: omite `xclip`, las fuentes y Albert. |
+| `is_ubuntu_like` | Familia Ubuntu (Ubuntu, Mint, Pop!_OS, Zorin, …): habilita externals y `btop`. |
+| `is_apt_based` | Cualquier distro con `apt` (Ubuntu-like + Debian + Raspbian): habilita el script de paquetes. |
 | `ephemeral` | Máquina desechable: omite binarios externos, fuentes y `chsh`. |
-| `personal` | Máquina personal con acceso a secretos. |
-| `work` | Máquina de trabajo. |
+| `personal` | Verdadero si `machine_type == "personal"`. |
+| `work` | Verdadero si `machine_type == "work"`. |
 | `osid` | Identificador de distro, p. ej. `linux-linuxmint`. |
 | `hostname` | Hostname efectivo (en macOS vía `scutil`). |
 
-Perfiles conocidos:
+`chezmoi init` pregunta solo el tipo de máquina (si hay TTY):
 
-| Hostname | Perfil |
-| --- | --- |
-| `daregu-pc`, `macbook-air-m3` | Personal |
-| `ubuntu`, `ubuntu-26` | Headless + personal |
-| `zrh-mpl3s` | Trabajo |
-| Desconocido con TTY | Pregunta por `headless` y `ephemeral` |
-| Desconocido sin TTY | Asume estación de trabajo personal (permite aprovisionar) |
+- **Tipo de máquina**: `personal` o `work` (por defecto `personal`). De aquí se derivan `personal` y
+  `work`. No se infiere del hostname y se pregunta en cada `init` para no reutilizar valores viejos.
+
+`is_headless` se calcula solo:
+
+- Entornos efímeros → `true`.
+- Linux → `false` si `systemctl get-default` es `graphical.target` o si existe `DISPLAY` /
+  `WAYLAND_DISPLAY`; en caso contrario `true`.
+- macOS → `false`.
+
+Si la detección se equivoca, se puede forzar:
+
+```bash
+CHEZMOI_HEADLESS=1 chezmoi init   # forzar headless
+CHEZMOI_HEADLESS=0 chezmoi init   # forzar con GUI
+```
+
+Sin TTY (CI, aprovisionamiento desatendido) se asume `personal` para que la instalación continúe;
+`is_headless` se calcula igualmente. Para fijar el tipo sin interacción:
+
+```bash
+chezmoi init --promptChoice "Machine type=work"
+```
 
 Se consideran efímeros, sin preguntar: usuarios `root`, `ubuntu`, `vagrant`, `vscode`; variables
 `CODESPACES`, `REMOTE_CONTAINERS_IPC`, `CI`; contenedores Docker/Podman y Windows nativo.
 
-> Después de editar `.chezmoi.toml.tmpl` ejecuta `chezmoi init`, no solo `chezmoi apply`: el bloque
-> `[data]` calculado se persiste en `~/.config/chezmoi/chezmoi.toml`.
+La detección de familia se calcula una sola vez desde `os-release` (`ID` e `ID_LIKE`), de modo que
+cubre derivadas no enumeradas (Zorin, Kali, …). En máquinas efímeras no se pregunta nada:
+`machine_type` queda como `ephemeral` e `is_headless` se fuerza a `true`.
+
+> **Importante:** `[data]` se evalúa únicamente durante `chezmoi init` y se persiste en
+> `~/.config/chezmoi/chezmoi.toml`. Si actualizas con `chezmoi update` y el repo introduce variables
+> nuevas (`is_headless`, `is_ubuntu_like`, `is_apt_based`), ejecuta `chezmoi init` antes de aplicar;
+> de lo contrario las plantillas fallan por claves inexistentes.
 
 ## Personalización
 
@@ -325,7 +353,11 @@ git push
 | El agente quedó en mal estado | `rbw stop-agent && rbw unlock`. |
 | Falla la descarga de `eza` | La URL es `x86_64`; en ARM no hay asset y el external falla. |
 | El script de paquetes no corre | Solo se ejecuta al cambiar su contenido renderizado. Usa `chezmoi state delete-bucket --bucket=scriptState`. |
+| Error de plantilla por `is_headless` / `is_ubuntu_like` | El repo añadió variables nuevas: ejecuta `chezmoi init` para regenerar `[data]`. |
+| `chezmoi init` no pregunta el tipo de máquina | No hay TTY (CI, pipe) o se usó `--promptDefaults`. Ejecútalo en una terminal interactiva. |
+| `is_headless` se detectó mal | Fuerza el valor: `CHEZMOI_HEADLESS=1 chezmoi init` o `CHEZMOI_HEADLESS=0 chezmoi init`. |
 | `chezmoi status` no lista los scripts | Comportamiento intencional: `status.exclude` y `diff.exclude` incluyen `scripts`. |
+| `.local/bin/mise` aparece modificado | mise se autoactualiza, así que difiere del asset descargado. `chezmoi apply` lo realinea con la release fijada en el external. |
 
 Diagnóstico general:
 

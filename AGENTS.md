@@ -3,9 +3,9 @@
 ## Repository layout
 - Personal dotfiles managed by **chezmoi**. The git repo is `~/.local/share/chezmoi` (remote `github.com/davidreyg/dotfiles`, branch `main`); `~` itself is not a git repo.
 - `.chezmoiroot` contains `home`, so the chezmoi source root is `~/.local/share/chezmoi/home` (also what `chezmoi source-path` prints). Run git commands one level up in `~/.local/share/chezmoi`.
-- Managed files: `home/dot_zshrc.tmpl` -> `~/.zshrc`; `home/dot_gitconfig.tmpl` -> `~/.gitconfig`; `home/dot_config/{starship.toml,zsh/plugins.zsh,rbw/config.json}`; plus `home/.chezmoi.toml.tmpl` (chezmoi config), `home/.chezmoiexternal.toml.tmpl` (downloads) and `home/.chezmoitemplates/ubuntu-like.tmpl` (shared gate for the Debian/Ubuntu family).
-- `home/.chezmoiscripts/linux/` holds scripts kept out of `~`: `run_onchange_before_10_install-packages.sh.tmpl` (apt), `run_after_20_install_starship.sh`, `run_after_90_change-shell.sh.tmpl` (`chsh` to zsh). The `linux/` directory means they only run on Linux.
-- No README, build, tests, lint config, or CI. Verification is `chezmoi apply --dry-run --verbose` plus `shellcheck` on scripts.
+- Managed files: `home/dot_zshrc.tmpl` -> `~/.zshrc`; `home/dot_gitconfig.tmpl` -> `~/.gitconfig`; `home/dot_config/{starship.toml,zsh/plugins.zsh,rbw/config.json}`; plus `home/.chezmoi.toml.tmpl` (chezmoi config and shared `[data]`) and `home/.chezmoiexternal.toml.tmpl` (downloads).
+- `home/.chezmoiscripts/linux/` holds scripts kept out of `~`: `run_onchange_before_10_install-packages.sh.tmpl` (apt), `run_onchange_before_15_install_albert.sh.tmpl` (Albert launcher), `run_after_20_install_starship.sh`, `run_after_30_setup_mise.sh` (mise completions), `run_after_90_change-shell.sh.tmpl` (`chsh` to zsh). The `linux/` directory means they only run on Linux.
+- `README.md` documents installation and daily use; there is no build, test suite, lint config, or CI. Verification is `chezmoi apply --dry-run --verbose` plus `shellcheck` on scripts.
 
 ## Commands (run on the target machine: Linux Mint 22.x, WSL Ubuntu, macOS)
 - From a Windows session, use `wsl.exe -d Ubuntu-22.04 -- bash -lc '...'`. Native Windows git over `\\wsl.localhost\...` fails with "detected dubious ownership".
@@ -14,12 +14,13 @@
 - `chezmoi edit ~/.zshrc` or edit `home/` directly; never hand-edit rendered files for tracked configs. Use `chezmoi re-add <path>` only to copy an intentional `~` edit back into source; `chezmoi add <path>` for new files.
 
 ## Machine/template behavior
-- `home/.chezmoi.toml.tmpl` sets data from hostname: `daregu-pc` / `macbook-air-m3` = personal; `ubuntu` / `ubuntu-26` = headless + personal; `zrh-mpl3s` = work. Known hosts never prompt. Unknown hosts prompt for `headless`/`ephemeral` when there is a TTY; **without a TTY they are treated as a personal workstation** (not ephemeral) so provisioning still happens.
-- `ephemeral` (user `root` / `ubuntu` / `vagrant` / `vscode`, `CODESPACES`, `REMOTE_CONTAINERS_IPC`, `CI`, Docker/Podman containers, Windows) skips all externals; it also skips the `chsh` script.
-- `headless` skips `xclip` and font downloads. `osid` (e.g. `linux-linuxmint`) identifies the distro; the Debian/Ubuntu family check lives in `home/.chezmoitemplates/ubuntu-like.tmpl`, which matches `osid == linux-ubuntu` **or** `ID_LIKE` containing `ubuntu` (Linux Mint, Pop!_OS, Zorin, ...). The package script also targets `linux-debian` and `linux-raspbian`; those two are intentionally excluded from externals because the `eza` asset URL is x86_64-only.
-- Externals fetched on apply: age, age-keygen, rbw, rbw-agent, rbw zsh completion, eza, and the zinit git repo; MesloLGS NF fonts only when not headless. Starship is installed by `run_after_20`, not via externals.
-- `run_onchange_before_10_install-packages.sh.tmpl` runs apt only when the package list changes. `run_after_90_change-shell.sh.tmpl` runs on every apply but exits early when zsh is already the login shell, is not installed, is missing from `/etc/shells`, or there is no TTY.
-- After editing `home/.chezmoi.toml.tmpl` you must run `chezmoi init` (not just `apply`): the computed `[data]` block is persisted in `~/.config/chezmoi/chezmoi.toml`.
+- `home/.chezmoi.toml.tmpl` does not infer the machine type from the hostname. With a TTY, `chezmoi init` runs `promptChoice` (`personal`/`work`, default personal) every time; the non-`*Once` variant is intentional so a stale value in `[data]` cannot skip the prompt. Without a TTY it falls back to personal so provisioning still runs. Ephemeral machines skip the prompt and set `machine_type = "ephemeral"`.
+- `ephemeral` (user `root` / `ubuntu` / `vagrant` / `vscode`, `CODESPACES`, `REMOTE_CONTAINERS_IPC`, `CI`, Docker/Podman containers, Windows) skips all externals and the machine-type prompt; it also skips the `chsh` script.
+- Distro family flags live in `[data]`: `is_ubuntu_like` (osid `linux-ubuntu` **or** `ID_LIKE` containing `ubuntu`) gates externals, `btop` and Albert; `is_apt_based` (`is_ubuntu_like` **or** `ID` `debian`/`raspbian` **or** `ID_LIKE` containing `debian`) gates the apt script. Debian/Raspbian stay out of externals because the `eza` asset URL is x86_64-only.
+- `is_headless` skips `xclip`, font downloads and Albert. It is computed automatically: ephemeral → true; Linux → false when `systemctl get-default` is `graphical.target` or `DISPLAY`/`WAYLAND_DISPLAY` is set; macOS → false. `CHEZMOI_HEADLESS=1|0` forces it.
+- Externals fetched on apply: age, age-keygen, rbw, rbw-agent, rbw zsh completion, eza, mise, and the zinit git repo; MesloLGS NF fonts only when not headless. Starship is installed by `run_after_20`, not via externals.
+- `run_onchange_before_10_install-packages.sh.tmpl` runs apt only when the rendered package array changes. `run_after_90_change-shell.sh.tmpl` runs on every apply but exits early when zsh is already the login shell, is not installed, is missing from `/etc/shells`, or there is no TTY.
+- After editing `home/.chezmoi.toml.tmpl` you must run `chezmoi init` (not just `apply`): the computed `[data]` block is persisted in `~/.config/chezmoi/chezmoi.toml`. Machines that pull new data keys (`is_headless`, `is_ubuntu_like`, `is_apt_based`) also need `chezmoi init` before `apply`.
 
 ## Gotchas
 - `~/.zshrc` drift was caused by a manual `# opencode` PATH export; it is now managed in `dot_zshrc.tmpl` behind `[ -d "$HOME/.opencode/bin" ]`, so `chezmoi status` is clean and `apply` no longer prompts. Never hand-edit rendered files for tracked configs.

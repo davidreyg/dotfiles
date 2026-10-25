@@ -1,6 +1,5 @@
-{{ if or (eq .osid "linux-debian") (eq .osid "linux-raspbian") (eq (includeTemplate ".chezmoitemplates/ubuntu-like.tmpl" .) "true") -}}
-
-{{ $packages := list
+{{- if .is_apt_based -}}
+{{- $packages := list
      "bat"
      "build-essential"
      "curl"
@@ -14,37 +13,40 @@
      "shellcheck"
      "units"
      "zsh" -}}
-{{ $snaps := list -}}
-{{ $classicSnaps := list -}}
+{{- $snaps := list -}}
+{{- $classicSnaps := list -}}
 
-{{ if eq (includeTemplate ".chezmoitemplates/ubuntu-like.tmpl" .) "true" -}}
-{{   $packages = mustAppend $packages "btop" -}}
-{{ end -}}
+{{- if .is_ubuntu_like -}}
+{{-   $packages = mustAppend $packages "btop" -}}
+{{- end -}}
 
-{{ if not .headless -}}
-{{   $packages = mustAppend $packages "xclip" -}}
-{{ end -}}
+{{- if not .is_headless -}}
+{{-   $packages = mustAppend $packages "xclip" -}}
+{{- end -}}
 
-
-{{ $sudo := "sudo " -}}
-{{ if eq .chezmoi.username "root" -}}
-{{   $sudo = "" -}}
-{{ end -}}
-
+{{- $sudo := "sudo " -}}
+{{- if eq .chezmoi.username "root" -}}
+{{-   $sudo = "" -}}
+{{- end -}}
 #!/bin/bash
 
 set -eufo pipefail
 
+PACKAGES=(
+{{- range $packages }}
+    {{ . | quote }}
+{{- end }}
+)
+
 {{ $sudo }}apt-get update
-{{ $sudo }}apt-get install -y {{ $packages | join " " }}
+{{ $sudo }}apt-get install -y "${PACKAGES[@]}"
 
 {{ if lookPath "snap" }}
-{{   range $snaps }}
+{{-   range $snaps }}
 ( snap info {{ . }} | grep -q ^installed: ) || {{ $sudo }}snap install {{ . }}
-{{   end }}
-{{   range $classicSnaps }}
+{{-   end }}
+{{-   range $classicSnaps }}
 ( snap info {{ . }} | grep -q ^installed: ) || {{ $sudo }}snap install --classic {{ . }}
-{{   end }}
+{{-   end }}
 {{ end }}
-
-{{ end -}}
+{{- end -}}

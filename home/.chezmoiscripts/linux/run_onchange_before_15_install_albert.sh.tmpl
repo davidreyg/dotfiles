@@ -1,6 +1,7 @@
+{{- if and (eq .chezmoi.os "linux") (not .is_headless) -}}
 #!/bin/bash
 
-{{ if eq .chezmoi.os "linux" }}
+set -eufo pipefail
 
 if command -v albert >/dev/null 2>&1; then
     exit 0
@@ -36,5 +37,4 @@ fi
     sudo apt-get update && sudo apt-get install -y albert
 
 {{ end }}
-
-{{ end }}
+{{- end -}}

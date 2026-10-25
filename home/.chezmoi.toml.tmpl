@@ -1,72 +1,161 @@
-{{/* boolean feature tags */}}
-{{- $ephemeral := false -}}{{/* true if this machine is ephemeral, e.g. a cloud or VM instance */}}
-{{- $work := false -}}{{/* true if this machine is a work machine */}}
-{{- $headless := false -}}{{/* true if this machine does not have a screen and keyboard */}}
-{{- $personal := false -}}{{/* true if this machine should have personal secrets */}}
-{{- "" -}}
+{{/*
+    Chezmoi config template.
 
-{{/* operating system identity */}}
+    WHEN IT RUNS
+        Only `chezmoi init` renders this file. The result (including the [data]
+        block) is persisted in ~/.config/chezmoi/chezmoi.toml, so after editing it
+        run `chezmoi init` again; `chezmoi apply` alone will not pick up changes.
+
+    SECTIONS
+        1. Defaults
+        2. Operating system identity
+        3. Distro family (what can be installed)
+        4. Disposable environments (ephemeral)
+        5. Hostname
+        6. Machine type (interactive)
+        7. Headless (automatic)
+        8. Derived values
+        9. Output
+*/}}
+
+{{/* ================================================================== */}}
+{{/* 1. Defaults                                                        */}}
+{{/*    Every flag starts false and is computed below.                   */}}
+{{/* ================================================================== */}}
+{{- $ephemeral := false -}}{{/* throwaway machine: container, CI, cloud sandbox */}}
+{{- $headless := false -}}{{/* no screen/keyboard: skips GUI-only tooling      */}}
+{{- $personal := false -}}{{/* derived from $machineType                         */}}
+{{- $work := false -}}{{/* derived from $machineType                         */}}
+{{- $machineType := "" -}}{{/* personal | work | ephemeral                     */}}
+
+{{/* ================================================================== */}}
+{{/* 2. Operating system identity                                       */}}
+{{/*    osid combines OS and distro, e.g. linux-linuxmint.               */}}
+{{/*    osRelease only exists on Linux, hence the guard.                 */}}
+{{/* ================================================================== */}}
 {{- $osID := .chezmoi.os -}}
-{{- if (and (eq .chezmoi.os "linux") (hasKey .chezmoi.osRelease "id")) -}}
+{{- if and (eq .chezmoi.os "linux") (hasKey .chezmoi.osRelease "id") -}}
 {{-   $osID = printf "%s-%s" .chezmoi.os .chezmoi.osRelease.id -}}
 {{- end -}}
 
-{{/* detect GitHub codespaces, VSCode remote containers, CI runs, and disposable accounts */}}
-{{- if or (env "CODESPACES") (env "REMOTE_CONTAINERS_IPC") (env "CI") (eq .chezmoi.username "root" "ubuntu" "vagrant" "vscode") -}}
-{{-   $ephemeral = true -}}
-{{-   $headless = true -}}
+{{/* ================================================================== */}}
+{{/* 3. Distro family                                                   */}}
+{{/*    is_ubuntu_like: gates externals, btop and Albert.                */}}
+{{/*    is_apt_based: gates the apt package script.                      */}}
+{{/*    ID_LIKE is preferred over an ID list so derivatives (Zorin,      */}}
+{{/*    Kali, ...) work without being enumerated.                        */}}
+{{/* ================================================================== */}}
+{{- $ubuntuLike := eq $osID "linux-ubuntu" -}}
+{{- if and (eq .chezmoi.os "linux") (hasKey .chezmoi.osRelease "idLike") -}}
+{{-   $ubuntuLike = or $ubuntuLike (contains "ubuntu" .chezmoi.osRelease.idLike) -}}
 {{- end -}}
 
-{{/* detect Docker/Podman containers, whose state is disposable too */}}
+{{- $aptBased := $ubuntuLike -}}
+{{- if and (eq .chezmoi.os "linux") (hasKey .chezmoi.osRelease "id") -}}
+{{-   $aptBased = or $aptBased (has .chezmoi.osRelease.id (list "debian" "raspbian")) -}}
+{{- end -}}
+{{- if and (eq .chezmoi.os "linux") (hasKey .chezmoi.osRelease "idLike") -}}
+{{-   $aptBased = or $aptBased (contains "debian" .chezmoi.osRelease.idLike) -}}
+{{- end -}}
+
+{{/* ================================================================== */}}
+{{/* 4. Disposable environments (ephemeral)                             */}}
+{{/*    Ephemeral machines skip external downloads, GUI tooling and the  */}}
+{{/*    login-shell change, because their state is thrown away.          */}}
+{{/* ================================================================== */}}
+{{/* GitHub Codespaces, VS Code remote containers, CI and disposable users */}}
+{{- if or (env "CODESPACES") (env "REMOTE_CONTAINERS_IPC") (env "CI") (eq .chezmoi.username "root" "ubuntu" "vagrant" "vscode") -}}
+{{-   $ephemeral = true -}}
+{{- end -}}
+
+{{/* Docker / Podman containers */}}
 {{- if and (not $ephemeral) (eq .chezmoi.os "linux") -}}
 {{-   if eq (output "sh" "-c" "if [ -e /.dockerenv ] || [ -e /run/.containerenv ]; then echo yes; else echo no; fi") "yes" -}}
 {{-     $ephemeral = true -}}
-{{-     $headless = true -}}
 {{-   end -}}
 {{- end -}}
 
-{{/* work around unreliable hostname on darwin */}}
+{{/* Native Windows (use WSL instead) */}}
+{{- if eq .chezmoi.os "windows" -}}
+{{-   $ephemeral = true -}}
+{{- end -}}
+
+{{/* ================================================================== */}}
+{{/* 5. Hostname                                                        */}}
+{{/*    .chezmoi.hostname is unreliable on darwin, so ask scutil.        */}}
+{{/* ================================================================== */}}
 {{- $hostname := .chezmoi.hostname -}}
 {{- if eq .chezmoi.os "darwin" -}}
 {{-   $hostname = output "scutil" "--get" "LocalHostName" | trim -}}
 {{- end -}}
 
-{{- if eq .chezmoi.os "windows" -}}
-{{-   $ephemeral = true -}}
+{{/* ================================================================== */}}
+{{/* 6. Machine type (interactive)                                      */}}
+{{/*    Nothing is inferred from the hostname. On a TTY `chezmoi init`  */}}
+{{/*    asks every time; promptChoice (not *Once) is intentional so a    */}}
+{{/*    stale value in [data] can never skip the question.               */}}
+{{/*    Without a TTY (CI, pipes) fall back to a personal workstation so */}}
+{{/*    provisioning still happens.                                      */}}
+{{/*    Non-interactive override:                                        */}}
+{{/*      chezmoi init --promptChoice "Machine type=work"                */}}
+{{/* ================================================================== */}}
+{{- if $ephemeral -}}
+{{-   $machineType = "ephemeral" -}}
+{{- else if stdinIsATTY -}}
+{{-   $machineType = promptChoice "Machine type" (list "personal" "work") "personal" -}}
+{{- else -}}
+{{-   $machineType = "personal" -}}
+{{- end -}}
+{{- $personal = eq $machineType "personal" -}}
+{{- $work = eq $machineType "work" -}}
+
+{{/* ================================================================== */}}
+{{/* 7. Headless (automatic)                                            */}}
+{{/*    Ephemeral machines are always headless.                         */}}
+{{/*    On Linux, a graphics stack is assumed when systemd boots into    */}}
+{{/*    graphical.target or a display is already exported. SSH sessions  */}}
+{{/*    into a desktop still detect graphical.target correctly.          */}}
+{{/*    macOS is assumed to have a GUI.                                  */}}
+{{/*    Escape hatch when detection is wrong:                            */}}
+{{/*      CHEZMOI_HEADLESS=1 chezmoi init   (force true)                 */}}
+{{/*      CHEZMOI_HEADLESS=0 chezmoi init   (force false)                */}}
+{{/* ================================================================== */}}
+{{- $headlessOverride := env "CHEZMOI_HEADLESS" -}}
+{{- if ne $headlessOverride "" -}}
+{{-   $headless = or (eq $headlessOverride "1") (eq $headlessOverride "true") -}}
+{{- else if $ephemeral -}}
+{{-   $headless = true -}}
+{{- else if eq .chezmoi.os "linux" -}}
+{{-   $defaultTarget := output "sh" "-c" "command -v systemctl >/dev/null 2>&1 && systemctl get-default 2>/dev/null || true" | trim -}}
+{{-   $headless = not (or (eq $defaultTarget "graphical.target") (ne (env "DISPLAY") "") (ne (env "WAYLAND_DISPLAY") "")) -}}
 {{- end -}}
 
-{{- if not $ephemeral -}}
-{{-   if eq $hostname "macbook-air-m3" -}}
-{{-     $personal = true -}}
-{{-   else if eq $hostname "daregu-pc" -}}
-{{-     $personal = true -}}
-{{-   else if eq $hostname "ubuntu" "ubuntu-26" -}}
-{{-     $headless = true -}}
-{{-     $personal = true -}}
-{{-   else if eq $hostname "zrh-mpl3s" -}}
-{{-     $work = true -}}
-{{-   else if stdinIsATTY -}}
-{{-     $headless = promptBoolOnce . "headless" "headless" -}}
-{{-     $ephemeral = promptBoolOnce . "ephemeral" "ephemeral" -}}
-{{-   else -}}
-{{/* Unknown host without a TTY: assume a real workstation, not a disposable one. */}}
-{{-     $personal = true -}}
-{{-   end -}}
-{{- end -}}
-
+{{/* ================================================================== */}}
+{{/* 8. Derived values                                                  */}}
+{{/*    Same address for now; split here if work ever needs another one. */}}
+{{/* ================================================================== */}}
 {{- $email := "neisserrey@upeu.edu.pe" -}}
-{{- if $work -}}
-{{-   $email = "neisserrey@upeu.edu.pe" -}}
-{{- end -}}
 
+{{/* ================================================================== */}}
+{{/* 9. Output                                                          */}}
+{{/*    These keys become [data] and are read by every template/script.  */}}
+{{/* ================================================================== */}}
 [data]
+    # Machine profile
     ephemeral = {{ $ephemeral }}
-    email = {{ $email | quote }}
-    work = {{ $work }}
-    headless = {{ $headless }}
-    hostname = {{ $hostname | quote }}
+    machine_type = {{ $machineType | quote }}
     personal = {{ $personal }}
+    work = {{ $work }}
+    is_headless = {{ $headless }}
+
+    # Platform
+    hostname = {{ $hostname | quote }}
     osid = {{ $osID | quote }}
+    is_apt_based = {{ $aptBased }}
+    is_ubuntu_like = {{ $ubuntuLike }}
+
+    # Git identity
+    email = {{ $email | quote }}
 
 [github]
     refreshPeriod = "12h"

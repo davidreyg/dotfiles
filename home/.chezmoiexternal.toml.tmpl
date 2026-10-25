@@ -1,6 +1,6 @@
 {{ if not .ephemeral }}
 
-{{- if eq (includeTemplate ".chezmoitemplates/ubuntu-like.tmpl" .) "true" }}
+{{- if .is_ubuntu_like }}
 
 [".local/bin/age"]
     type = "archive-file"
@@ -85,7 +85,7 @@
 
 {{- end }}
 
-{{- if and (not .ephemeral) (not .headless) }}
+{{- if and (not .ephemeral) (not .is_headless) }}
 {{-   $fontDir := "" }}
 {{-   if eq .chezmoi.os "darwin" }}
 {{-     $fontDir = "Library/Fonts" }}
