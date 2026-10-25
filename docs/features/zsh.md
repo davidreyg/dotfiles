@@ -1,3 +1,10 @@
+---
+layout: default
+title: Zsh + Zinit
+parent: Funcionalidades
+nav_order: 1
+---
+
 # Zsh + Zinit
 
 ## Qué hace

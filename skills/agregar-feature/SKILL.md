@@ -91,7 +91,8 @@ Actualiza, en este orden:
 
 1. **`docs/features/<nombre>.md`** desde `docs/plantillas/nueva-feature.md`:
    qué hace, archivos, variables, verificación, desactivación, problemas y notas.
-2. **`docs/README.md`**: añade la fila en la tabla de funcionalidades.
+2. **`docs/features/<nombre>.md`**: añade el front matter (`layout`, `title`,
+   `parent: Funcionalidades`, `nav_order`) y la fila en `docs/features/index.md` y en `docs/index.md`.
 3. **`AGENTS.md`**:
    - layout si hay archivos nuevos;
    - comportamiento si cambia `[data]` o un gate;

@@ -1,3 +1,10 @@
+---
+layout: default
+title: Albert
+parent: Funcionalidades
+nav_order: 4
+---
+
 # Albert
 
 ## Qué hace

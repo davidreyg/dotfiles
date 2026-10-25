@@ -1,1 +1,72 @@
+# Configuración del sitio de documentación (GitHub Pages + Just the Docs).
+# Referencia: https://just-the-docs.com/docs/configuration/
+#
+# GitHub Pages lee este archivo desde la carpeta publicada (`/docs`).
+
+title: Dotfiles
+description: Wiki técnica del repositorio de dotfiles gestionado con chezmoi.
+lang: es
+
+# GitHub Pages descarga el tema en cada despliegue; no hay que instalarlo en local.
 remote_theme: just-the-docs/just-the-docs
+
+# Project site: https://davidreyg.github.io/dotfiles
+# Si cambias el nombre del repositorio o usas un dominio propio, ajusta estos dos valores.
+url: https://davidreyg.github.io
+baseurl: /dotfiles
+
+# El tema no trae plugins activos; estos están permitidos por GitHub Pages.
+plugins:
+  - jekyll-remote-theme
+  - jekyll-relative-links
+  - jekyll-seo-tag
+  - jekyll-sitemap
+
+# Convierte enlaces relativos a archivos .md en enlaces a las páginas publicadas.
+relative_links:
+  enabled: true
+  collections: false
+
+# URLs limpias: /instalacion/ en lugar de /instalacion.html
+permalink: pretty
+
+# Búsqueda integrada en el menú superior.
+search_enabled: true
+search:
+  heading_level: 2
+  previews: 2
+
+# Anclas en los encabezados (hasta nivel 2) al pasar el ratón.
+heading_anchors: 2
+
+# Menú lateral.
+nav_enabled: true
+nav_sort: case_insensitive
+
+aux_links:
+  "Repositorio en GitHub":
+    - "https://github.com/davidreyg/dotfiles"
+aux_links_new_tab: true
+
+back_to_top: true
+back_to_top_text: "Volver arriba"
+
+footer_content: 'Documentación personal de <a href="https://github.com/davidreyg">davidreyg</a>.'
+
+# Enlace "Editar esta página" en el pie.
+gh_edit_link: true
+gh_edit_link_text: "Editar esta página en GitHub"
+gh_edit_repository: "https://github.com/davidreyg/dotfiles"
+gh_edit_branch: "main"
+gh_edit_source: "docs"
+gh_edit_view_mode: "edit"
+
+color_scheme: light
+
+callouts:
+  note:
+    title: Nota
+    color: blue
+  warning:
+    title: Atención
+    color: red

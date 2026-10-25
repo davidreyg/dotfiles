@@ -1,3 +1,9 @@
+---
+layout: default
+title: Arquitectura
+nav_order: 3
+---
+
 # Arquitectura
 
 Este repositorio no es una colección de archivos copiados: es una **fuente de verdad declarativa**

@@ -1,3 +1,9 @@
+---
+layout: default
+title: Solución de problemas
+nav_order: 7
+---
+
 # Troubleshooting
 
 Diagnóstico general antes de tocar nada:

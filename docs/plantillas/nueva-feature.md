@@ -1,7 +1,24 @@
+---
+layout: default
+title: Plantilla de feature
+nav_exclude: true
+---
+
 # <Nombre de la funcionalidad>
 
-> Copia este archivo a `docs/features/<nombre>.md`, rellena las secciones y añádelo al índice de
-> [`docs/README.md`](../README.md#funcionalidades). Borra esta cita.
+> Copia este archivo a `docs/features/<nombre>.md`, rellena las secciones y añádelo al
+> [índice de funcionalidades](../features/index.md). Borra esta cita.
+>
+> El front matter debe quedar así (el `title` es el que verás en el menú lateral):
+>
+> ```yaml
+> ---
+> layout: default
+> title: <Nombre corto>
+> parent: Funcionalidades
+> nav_order: 7
+> ---
+> ```
 
 ## Qué hace
 

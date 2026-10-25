@@ -1,7 +1,13 @@
+---
+layout: default
+title: Agregar una feature
+nav_order: 9
+---
+
 # Agregar una funcionalidad
 
 Guía operativa para extender el repositorio sin romper máquinas existentes. Está pensada para
-humanos y para agentes; la skill [`skills/agregar-feature`](../skills/agregar-feature/SKILL.md)
+humanos y para agentes; la skill [`skills/agregar-feature`](https://github.com/davidreyg/dotfiles/blob/main/skills/agregar-feature/SKILL.md)
 automatiza este mismo flujo.
 
 ## 0. Decide el tipo de cambio
@@ -132,14 +138,16 @@ Criterios de aceptación:
 Siempre:
 
 1. Crea `docs/features/<nombre>.md` desde la [plantilla](plantillas/nueva-feature.md).
-2. Añádela a la tabla de [`docs/README.md`](README.md#funcionalidades).
-3. Actualiza [`AGENTS.md`](../AGENTS.md) (layout, comportamiento, gotchas).
-4. Actualiza este repositorio de guías si el flujo cambia.
+2. Añade el front matter: `layout: default`, `title`, `parent: Funcionalidades` y `nav_order`.
+3. Añade la fila en la tabla de [`docs/features/index.md`](features/index.md) y en el
+   [índice](index.md).
+4. Actualiza `AGENTS.md` (layout, comportamiento, gotchas).
+5. Actualiza esta guía si el flujo cambia.
 
 Si el cambio afecta al uso diario o a la instalación:
 
-5. Actualiza el [`README.md`](../README.md) (conciso, con enlace a la página de la feature).
-6. Actualiza [`roadmap.md`](roadmap.md) (marca el ítem o añade el nuevo).
+6. Actualiza el `README.md` (conciso, con enlace a la página de la feature).
+7. Actualiza [`roadmap.md`](roadmap.md) (marca el ítem o añade el nuevo).
 
 ## 7. Commit
 
@@ -169,4 +177,4 @@ Prefijos usados: `feat:`, `fix:`, `refactor:`, `docs:`.
 
 La skill carga este flujo, muestra el plan, implementa, verifica y actualiza la documentación. Si no
 está registrada en tu cliente, el archivo está en
-[`skills/agregar-feature/SKILL.md`](../skills/agregar-feature/SKILL.md).
+[`skills/agregar-feature/SKILL.md`](https://github.com/davidreyg/dotfiles/blob/main/skills/agregar-feature/SKILL.md).

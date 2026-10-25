@@ -1,3 +1,10 @@
+---
+layout: default
+title: Teclado Apple / Fn
+parent: Funcionalidades
+nav_order: 6
+---
+
 # Teclado Apple / teclas F1-F12 (`fnmode`)
 
 ## Problema

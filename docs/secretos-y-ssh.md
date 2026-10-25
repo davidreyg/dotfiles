@@ -1,3 +1,9 @@
+---
+layout: default
+title: Secretos y SSH
+nav_order: 6
+---
+
 # Secretos y SSH
 
 El repositorio **no contiene secretos**. Las credenciales viven en Bitwarden y se sirven bajo demanda

@@ -1,3 +1,9 @@
+---
+layout: default
+title: Paquetes y externals
+nav_order: 5
+---
+
 # Paquetes y externals
 
 Dos mecanismos distintos:

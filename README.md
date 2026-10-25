@@ -58,7 +58,7 @@ Guía detallada: [docs/secretos-y-ssh.md](docs/secretos-y-ssh.md).
 
 ## Documentación
 
-La wiki vive en [`docs/`](docs/README.md):
+La wiki vive en [`docs/`](docs/index.md):
 
 | Documento | Contenido |
 | --- | --- |

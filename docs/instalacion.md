@@ -1,7 +1,13 @@
+---
+layout: default
+title: Instalación
+nav_order: 2
+---
+
 # Instalación
 
 Guía completa para dejar una máquina lista desde cero. Si solo quieres el camino corto, el
-[README](../README.md) tiene la versión resumida.
+[README](https://github.com/davidreyg/dotfiles/blob/main/README.md) tiene la versión resumida.
 
 ## 1. Requisitos
 

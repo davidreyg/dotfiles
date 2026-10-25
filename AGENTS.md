@@ -24,7 +24,8 @@
 - After editing `home/.chezmoi.toml.tmpl` you must run `chezmoi init` (not just `apply`): the computed `[data]` block is persisted in `~/.config/chezmoi/chezmoi.toml`. Machines that pull new data keys (`is_headless`, `is_ubuntu_like`, `is_apt_based`) also need `chezmoi init` before `apply`.
 
 ## Documentation and skills
-- Every user-visible feature gets a page in `docs/features/` based on `docs/plantillas/nueva-feature.md`, plus a row in the table in `docs/README.md`.
+- Every user-visible feature gets a page in `docs/features/` based on `docs/plantillas/nueva-feature.md`, plus a row in the tables in `docs/features/index.md` and `docs/index.md`.
+- The wiki is published with GitHub Pages from `/docs` using Just the Docs (`remote_theme` in `docs/_config.yml`; `baseurl: /dotfiles`). Every page needs YAML front matter: `layout`, `title`, `nav_order`; category pages add `has_children: true` and their children add `parent: <exact parent title>`. A page without front matter is copied unprocessed and never appears in the sidebar.
 - When behavior, layout, `[data]` or a gate changes, update `AGENTS.md` and the relevant page under `docs/`; update `README.md` only if installation or daily use changes.
 - `docs/roadmap.md` tracks pending work; mark items done instead of deleting them silently.
 - Use `skills/agregar-feature/SKILL.md` as the checklist: announce the plan, implement, verify, update `docs/` + `AGENTS.md` + `README.md`, and commit only when asked.

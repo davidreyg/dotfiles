@@ -1,3 +1,9 @@
+---
+layout: default
+title: Configuración
+nav_order: 4
+---
+
 # Configuración y perfiles
 
 Todo lo que cambia entre máquinas se decide en `home/.chezmoi.toml.tmpl` y se expone como `[data]`.

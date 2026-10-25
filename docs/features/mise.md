@@ -1,3 +1,10 @@
+---
+layout: default
+title: mise
+parent: Funcionalidades
+nav_order: 3
+---
+
 # mise
 
 ## Qué hace

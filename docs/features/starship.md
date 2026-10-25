@@ -1,3 +1,10 @@
+---
+layout: default
+title: Starship
+parent: Funcionalidades
+nav_order: 2
+---
+
 # Starship
 
 ## Qué hace
