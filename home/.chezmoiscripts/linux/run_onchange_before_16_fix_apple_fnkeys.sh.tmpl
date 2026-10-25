@@ -1,0 +1,46 @@
+{{- if and (eq .chezmoi.os "linux") (not .is_headless) -}}
+#!/bin/bash
+set -eufo pipefail
+
+# Apple keyboards (and some third-party keyboards wrongly detected as Apple)
+# use the hid_apple (or mac_hid) module. fnmode=2 means:
+#   F1-F12 by default, Fn for media keys.
+# Without it, many keyboards send media keys instead of function keys.
+#
+# The config file is cheap to write; initramfs regeneration only happens when
+# the line is missing. Safe to run on machines without such a keyboard.
+
+run_root() {
+    if [ "$(id -u)" -eq 0 ]; then
+        "$@"
+    else
+        sudo "$@"
+    fi
+}
+
+MODULE="hid_apple"
+if [ ! -d /sys/module/hid_apple ] && [ -d /sys/module/mac_hid ]; then
+    MODULE="mac_hid"
+fi
+
+CONFIG="/etc/modprobe.d/${MODULE}.conf"
+LINE="options ${MODULE} fnmode=2"
+
+if grep -qxF "$LINE" "$CONFIG" 2>/dev/null; then
+    echo "$CONFIG ya contiene '$LINE'; se omite initramfs."
+else
+    printf '%s\n' "$LINE" | run_root tee "$CONFIG" >/dev/null
+    echo "Escrito $CONFIG"
+    if command -v update-initramfs >/dev/null 2>&1; then
+        run_root update-initramfs -u
+    elif command -v mkinitcpio >/dev/null 2>&1; then
+        run_root mkinitcpio -P
+    fi
+fi
+
+# Apply immediately when the module is already loaded: no reboot needed.
+if [ -e "/sys/module/${MODULE}/parameters/fnmode" ]; then
+    printf '2\n' | run_root tee "/sys/module/${MODULE}/parameters/fnmode" >/dev/null
+    echo "fnmode=2 aplicado en caliente para ${MODULE}."
+fi
+{{- end -}}
