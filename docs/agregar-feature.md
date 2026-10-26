@@ -2,6 +2,7 @@
 layout: default
 title: Agregar una feature
 nav_order: 9
+render_with_liquid: false
 ---
 
 # Agregar una funcionalidad

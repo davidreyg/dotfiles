@@ -53,6 +53,8 @@ Guía detallada: [docs/secretos-y-ssh.md](docs/secretos-y-ssh.md).
 - **mise** para versiones de runtimes.
 - **rbw + rbw-agent** como agente SSH.
 - **Herramientas**: bat, eza, ripgrep, fd, fzf, btop, git-lfs.
+- **Docker Engine + Compose**: `docker-ce` y el plugin `docker compose` desde el repositorio oficial
+  (solo Linux con `apt`).
 - **Albert** como lanzador (solo escritorio Linux).
 - **Fix de teclado Apple**: `fnmode=2` para que F1-F12 funcionen sin Fn.
 

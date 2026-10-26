@@ -67,14 +67,15 @@ Durante la ejecución ocurre lo siguiente:
 
 1. **Prompt de tipo de máquina** (`personal` o `work`). Solo aparece si hay TTY.
 2. Pide la contraseña de `sudo` para instalar paquetes con `apt`.
-3. Descarga binarios externos: `age`, `age-keygen`, `rbw`, `rbw-agent`, `eza`, `mise` y el repo de
+3. Instala Docker Engine y el plugin Compose si no existen (ver [Docker](features/docker.md)).
+4. Descarga binarios externos: `age`, `age-keygen`, `rbw`, `rbw-agent`, `eza`, `mise` y el repo de
    Zinit.
-4. Instala Starship en `~/.local/bin`.
-5. Instala Albert si la máquina no es headless.
-6. Configura `fnmode=2` para teclados Apple/mal detectados (ver
+5. Instala Starship en `~/.local/bin`.
+6. Instala Albert si la máquina no es headless.
+7. Configura `fnmode=2` para teclados Apple/mal detectados (ver
    [teclado Apple](features/teclado-apple.md)).
-7. Descarga las fuentes MesloLGS NF (solo con GUI).
-8. Pregunta si quieres cambiar el shell por defecto a `/usr/bin/zsh` (solo con TTY).
+8. Descarga las fuentes MesloLGS NF (solo con GUI).
+9. Pregunta si quieres cambiar el shell por defecto a `/usr/bin/zsh` (solo con TTY).
 
 > El modo headless se detecta automáticamente; no se pregunta. Detalles en
 > [Configuración](configuracion.md#detección-de-headless).

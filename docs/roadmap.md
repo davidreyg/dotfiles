@@ -38,6 +38,14 @@ que se pueda retomar sin contexto.
   - Motivación: la clave SSH y el vault son un punto único de fallo.
   - Implementación: documentar exportación del vault y recuperación de la clave SSH.
 
+- [ ] **Docker rootless**
+  - Motivación: el grupo `docker` equivale a root; rootless reduce el impacto de un contenedor
+    comprometido.
+  - Implementación: script `run_after_*` con `dockerd-rootless-setuptool.sh install` para el usuario,
+    documentar límites (puertos < 1024, cgroups) y cómo convivir con el modo actual.
+  - Alternativa mientras tanto: publicar puertos en `127.0.0.1` y no montar el socket en contenedores
+    que no lo necesiten.
+
 ## Plataformas
 
 - [ ] **Soporte macOS completo**

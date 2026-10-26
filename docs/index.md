@@ -2,6 +2,7 @@
 layout: default
 title: Inicio
 nav_order: 1
+render_with_liquid: false
 description: Índice de la wiki técnica del repositorio de dotfiles gestionado con chezmoi.
 ---
 
@@ -37,6 +38,7 @@ La documentación es **modular**: cada funcionalidad tiene su propia página en
 | [Albert](features/albert.md) | Estable | Lanzador gráfico desde el repo oficial de openSUSE. |
 | [rbw](features/rbw.md) | Estable | Bitwarden + agente SSH. |
 | [Teclado Apple / Fn](features/teclado-apple.md) | Estable | `fnmode=2` para que F1-F12 funcionen sin Fn. |
+| [Docker Engine + Compose](features/docker.md) | Estable | `docker-ce` + plugin Compose desde el repositorio oficial. |
 
 ## Cómo se publica
 
@@ -79,10 +81,15 @@ Reglas del menú:
 | Categoría (padre) | `layout`, `title`, `nav_order`, `has_children: true` |
 | Subpágina (hija) | `layout`, `title`, `parent: <título exacto del padre>`, `nav_order` |
 | Página oculta | `layout`, `title`, `nav_exclude: true` |
+| Página con ejemplos de plantillas Go | `layout`, `title`, `nav_order`, `render_with_liquid: false` |
 
 El valor de `parent` debe coincidir **exactamente** con el `title` del padre. Ejemplo real: la
 categoría [Funcionalidades](features/) usa `has_children: true` y cada página de `features/` declara
 `parent: Funcionalidades`.
+
+Las páginas que muestran ejemplos de plantillas Go (`{{ ... }}`) necesitan `render_with_liquid: false`.
+Si no, Jekyll interpreta ese contenido como Liquid antes de convertirlo a Markdown y el ejemplo
+aparece vacío o rompe el build.
 
 ### Previsualizar en local (opcional)
 

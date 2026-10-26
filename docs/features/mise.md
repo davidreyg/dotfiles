@@ -3,6 +3,7 @@ layout: default
 title: mise
 parent: Funcionalidades
 nav_order: 3
+render_with_liquid: false
 ---
 
 # mise

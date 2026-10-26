@@ -2,6 +2,7 @@
 layout: default
 title: Arquitectura
 nav_order: 3
+render_with_liquid: false
 ---
 
 # Arquitectura
@@ -61,8 +62,8 @@ del repositorio y **no** se gestionan: son documentación y herramientas, no arc
 | `private_` | Permisos `0600` | (no se usa) |
 | `executable_` | Permisos ejecutables | (no se usa) |
 
-Los scripts se ordenan por nombre, por eso llevan prefijo numérico (`10`, `15`, `16`, `20`, `30`,
-`90`). Deja huecos para insertar nuevos pasos sin renumerar.
+Los scripts se ordenan por nombre, por eso llevan prefijo numérico (`10`, `12`, `15`, `16`, `20`,
+`30`, `90`). Deja huecos para insertar nuevos pasos sin renumerar.
 
 ## Fases de ejecución
 
@@ -73,7 +74,7 @@ chezmoi init
   └── guarda [data] en ~/.config/chezmoi/chezmoi.toml
 
 chezmoi apply
-  ├── run_before_*          (10 paquetes, 15 Albert, 16 teclado)
+  ├── run_before_*          (10 paquetes, 12 Docker, 15 Albert, 16 teclado)
   ├── renderiza archivos gestionados
   └── run_after_*           (20 Starship, 30 mise, 90 chsh)
 ```

@@ -2,6 +2,7 @@
 layout: default
 title: Paquetes y externals
 nav_order: 5
+render_with_liquid: false
 ---
 
 # Paquetes y externals
@@ -53,6 +54,19 @@ texto altera el hash y vuelve a ejecutar el script.
 chezmoi state delete-bucket --bucket=scriptState
 chezmoi apply
 ```
+
+### Docker — `run_onchange_before_12_install_docker.sh.tmpl`
+
+Corre en Linux con `apt` y sin entornos efímeros. Añade el repositorio oficial de Docker y instala
+`docker-ce`, `docker-ce-cli`, `containerd.io`, `docker-buildx-plugin` y `docker-compose-plugin`.
+Después agrega el usuario al grupo `docker` y habilita el servicio cuando systemd es PID 1.
+
+- Si `docker` y `docker compose` ya funcionan, sale sin tocar nada.
+- Mint y derivadas usan `UBUNTU_CODENAME` (Mint 22.x → `noble`), no el codename de Mint.
+- No instala `docker-compose` v1; Compose v2 se usa como `docker compose`.
+- Se instala también en máquinas headless: Docker es útil en servidores.
+
+Detalle completo en [Docker](features/docker.md).
 
 ### Albert — `run_onchange_before_15_install_albert.sh.tmpl`
 

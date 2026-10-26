@@ -2,6 +2,7 @@
 layout: default
 title: Configuración
 nav_order: 4
+render_with_liquid: false
 ---
 
 # Configuración y perfiles
