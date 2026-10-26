@@ -20,6 +20,8 @@ zi light z-shell/zsh-eza
 
 # Librerías y plugins de Oh My Zsh (OMZ)
 zinit snippet OMZL::git.zsh
+zinit snippet OMZL::functions.zsh
+zinit snippet OMZL::directories.zsh
 zinit snippet OMZL::key-bindings.zsh
 
 zinit ice atload"unalias grv" lucid wait"0"

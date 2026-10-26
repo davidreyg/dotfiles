@@ -1,0 +1,89 @@
+{{- if and (eq .chezmoi.os "linux") (not .ephemeral) .is_apt_based -}}
+#!/bin/bash
+
+set -eufo pipefail
+
+# Docker Engine + Compose plugin from Docker's official APT repository.
+# Only on apt-based Linux (Ubuntu family, Debian, Raspbian).
+# Idempotent: if the client and the compose plugin already work, it exits early.
+
+run_root() {
+    if [ "$(id -u)" -eq 0 ]; then
+        "$@"
+    else
+        sudo "$@"
+    fi
+}
+
+if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
+    printf 'Docker Engine y el plugin Compose ya estan instalados.\n'
+else
+    # The distro package docker.io conflicts with docker-ce.
+    if dpkg -s docker.io >/dev/null 2>&1; then
+        printf 'docker.io esta instalado y entra en conflicto con docker-ce.\n' >&2
+        printf 'Ejecuta: sudo apt-get remove -y docker.io docker-compose && chezmoi apply\n' >&2
+        exit 1
+    fi
+
+    # shellcheck source=/dev/null
+    . /etc/os-release
+
+    case "${ID:-}" in
+        ubuntu|linuxmint|pop|elementary|zorin)
+            REPO_OS="ubuntu"
+            CODENAME="${UBUNTU_CODENAME:-${VERSION_CODENAME:-}}"
+            ;;
+        debian|raspbian)
+            REPO_OS="debian"
+            CODENAME="${VERSION_CODENAME:-}"
+            ;;
+        *)
+            printf 'Distribucion no soportada por este script: %s. Se omite Docker.\n' "${ID:-desconocida}" >&2
+            exit 0
+            ;;
+    esac
+
+    if [ -z "$CODENAME" ]; then
+        printf 'No se pudo detectar el codename de la distro. Se omite Docker.\n' >&2
+        exit 0
+    fi
+
+    run_root install -m 0755 -d /etc/apt/keyrings
+    run_root curl -fsSL "https://download.docker.com/linux/${REPO_OS}/gpg" -o /etc/apt/keyrings/docker.asc
+    run_root chmod a+r /etc/apt/keyrings/docker.asc
+
+    REPO_LINE="deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/${REPO_OS} ${CODENAME} stable"
+    REPO_FILE="/etc/apt/sources.list.d/docker.list"
+    if [ ! -f "$REPO_FILE" ] || [ "$(cat "$REPO_FILE")" != "$REPO_LINE" ]; then
+        printf '%s\n' "$REPO_LINE" | run_root tee "$REPO_FILE" >/dev/null
+        printf 'Repositorio de Docker configurado en %s\n' "$REPO_FILE"
+    fi
+
+    run_root apt-get update
+    run_root apt-get install -y \
+        docker-ce \
+        docker-ce-cli \
+        containerd.io \
+        docker-buildx-plugin \
+        docker-compose-plugin
+fi
+
+# Allow the invoking user to talk to the daemon without sudo.
+# Membership is only applied at the next login, so the current session still needs sudo.
+TARGET_USER="${SUDO_USER:-$(id -un)}"
+if [ "$TARGET_USER" != "root" ]; then
+    case " $(id -nG "$TARGET_USER") " in
+        *" docker "*)
+            ;;
+        *)
+            run_root usermod -aG docker "$TARGET_USER"
+            printf 'Usuario %s agregado al grupo docker. Cierra sesion y vuelve a entrar.\n' "$TARGET_USER"
+            ;;
+    esac
+fi
+
+# Enable the service only when systemd is really PID 1 (WSL without systemd, containers, etc.).
+if command -v systemctl >/dev/null 2>&1 && [ "$(ps -p 1 -o comm= 2>/dev/null)" = "systemd" ]; then
+    run_root systemctl enable --now docker
+fi
+{{- end -}}
