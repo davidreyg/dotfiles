@@ -24,6 +24,10 @@
 {{-   $packages = mustAppend $packages "xclip" -}}
 {{- end -}}
 
+{{- if and .is_ubuntu_like (not .is_headless) -}}
+{{-   $packages = mustAppend $packages "flatpak" -}}
+{{- end -}}
+
 {{- $sudo := "sudo " -}}
 {{- if eq .chezmoi.username "root" -}}
 {{-   $sudo = "" -}}

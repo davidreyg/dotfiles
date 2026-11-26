@@ -1,0 +1,21 @@
+{{- if and (eq .chezmoi.os "linux") .is_ubuntu_like (not .is_headless) (not .ephemeral) -}}
+#!/bin/bash
+
+set -eufo pipefail
+
+APP_ID="org.remmina.Remmina"
+FLATHUB_REPO_URL="https://dl.flathub.org/repo/flathub.flatpakrepo"
+
+if ! command -v flatpak >/dev/null 2>&1; then
+    printf 'Flatpak no está instalado; vuelve a ejecutar chezmoi apply después de instalar los paquetes.\n' >&2
+    exit 1
+fi
+
+flatpak remote-add --user --if-not-exists flathub "$FLATHUB_REPO_URL"
+
+if flatpak info --user "$APP_ID" >/dev/null 2>&1; then
+    printf 'Remmina ya está instalada para este usuario.\n'
+else
+    flatpak install --user --noninteractive --assumeyes flathub "$APP_ID"
+fi
+{{- end -}}

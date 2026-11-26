@@ -31,6 +31,7 @@ Condicionales:
 | --- | --- |
 | `is_ubuntu_like` | `btop` |
 | `not is_headless` | `xclip` |
+| `is_ubuntu_like` y `not is_headless` | `flatpak` |
 
 El script renderiza un array y ejecuta:
 
@@ -89,6 +90,18 @@ Corre en Linux no headless. Escribe `options <módulo> fnmode=2` en `/etc/modpro
 initramfs solo si la línea no existía. Aplica el valor en caliente si el módulo está cargado.
 
 Detalle completo en [Teclado Apple](features/teclado-apple.md).
+
+### Remmina — `run_onchange_before_17_install_remmina.sh.tmpl`
+
+Instala Remmina desde Flathub con Flatpak en escritorios Ubuntu-like. Flatpak se añade al paquete
+APT de escritorio y el script configura el remoto Flathub del usuario e instala la aplicación en
+ese mismo ámbito.
+
+- Solo Linux Ubuntu-like, no headless y no efímero.
+- No instala Flatpak en servidores ni entornos efímeros.
+- Si Flatpak no está disponible al ejecutar el script, falla con un mensaje explícito.
+
+Detalle completo en [Remmina](features/remmina.md).
 
 ### Starship — `run_after_20_install_starship.sh`
 

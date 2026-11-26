@@ -20,6 +20,7 @@ implicados, variables y condiciones, verificación, desactivación y notas de di
 | [rbw](rbw.md) | Estable | Bitwarden + agente SSH. |
 | [Teclado Apple / Fn](teclado-apple.md) | Estable | `fnmode=2` para que F1-F12 funcionen sin Fn. |
 | [Docker Engine + Compose](docker.md) | Estable | `docker-ce` + plugin Compose desde el repositorio oficial. |
+| [Remmina](remmina.md) | Estable | Cliente de escritorio remoto instalado por usuario desde Flathub. |
 
 Para añadir una página nueva:
 

@@ -56,6 +56,8 @@ Guía detallada: [docs/secretos-y-ssh.md](docs/secretos-y-ssh.md).
 - **Docker Engine + Compose**: `docker-ce` y el plugin `docker compose` desde el repositorio oficial
   (solo Linux con `apt`).
 - **Albert** como lanzador (solo escritorio Linux).
+- **Remmina** como cliente de escritorio remoto desde Flathub (solo escritorio Ubuntu/Mint y
+  derivadas).
 - **Fix de teclado Apple**: `fnmode=2` para que F1-F12 funcionen sin Fn.
 
 ## Documentación
